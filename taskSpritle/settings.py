@@ -25,7 +25,7 @@ SECRET_KEY = 'django-insecure-@so&$_!-jf17z2$rla3jxhz-a4rblbqdh_ki5hgrdba$i%e-by
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ["13.229.203.229","ip-172-31-44-212.ap-southeast-1.compute.internal"]
+ALLOWED_HOSTS = ["13.229.203.229","ip-172-31-44-212.ap-southeast-1.compute.internal", "localhost"]
 
 
 # Application definition
@@ -122,3 +122,11 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/4.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.mail.yahoo.com'
+EMAIL_PORT = '587'
+EMAIL_HOST_USER = 'xxxx@yahoo.in'
+EMAIL_HOST_PASSWORD = 'xxxx'
+EMAIL_USE_TLS = True
+EMAIL_USE_SSL = False

@@ -11,4 +11,6 @@ urlpatterns = [
     path('logout', views.logoutRequest),
     path('createPost', views.createPost),
     path('like', views.like),
+    path('comment', views.comment),
+    path('sendNotifications', views.sendNotifications),
 ]
