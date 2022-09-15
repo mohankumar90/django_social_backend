@@ -3,10 +3,9 @@ from django.shortcuts import render
 from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 
-from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
-from django.contrib.auth.forms import AuthenticationForm
+from django.core import mail
 
 from posts.models import *
 
@@ -166,5 +165,65 @@ def like(request):
             "status": False,
             "data": {
                 "error": "not allowed with get method"
+            }
+            }), content_type="application/json")
+
+@csrf_exempt
+def comment(request):
+    if request.method == "POST":
+        cmd = request.POST.get('cmd')
+        userid = request.POST.get('userid')
+        post = request.POST.get('post')
+
+        if not (cmd and userid and post):
+            return HttpResponse(json.dumps({
+            "status": False,
+            "data": {
+                "error": "params missing"
+            }
+            }), content_type="application/json")
+        
+        owner = Person.objects.get(id=userid)
+        post = Post.objects.get(id=post)
+
+        if owner and post:
+            obj = Comment(cmd=cmd, owner=owner, post=post)
+            obj.save()
+            return HttpResponse(json.dumps({
+                "status": True
+                }), content_type="application/json")
+    else:
+        return HttpResponse(json.dumps({
+            "status": False,
+            "data": {
+                "error": "not allowed with get method"
+            }
+            }), content_type="application/json")
+
+@csrf_exempt
+def sendNotifications(request):
+
+    persons = Person.objects.all()
+
+    for person in persons:
+        toMail = person.user.email
+        noOfPosts = Post.objects.filter(owner=person).count()
+        noOfLikes = Likes.objects.filter(person=person).count()
+        noOfCmds = Comment.objects.filter(owner=person).count()
+
+        body = "Posts: " + str(noOfPosts) + "\nLikes: " + str(noOfLikes) + "\nComments: " + str(noOfCmds)
+
+        with mail.get_connection() as connection:
+            mail.EmailMessage(
+                "taskSub: Notification", body, "billamohan90@yahoo.in", [toMail],
+                connection=connection,
+            ).send()
+
+        break
+
+    return HttpResponse(json.dumps({
+            "status": True,
+            "data": {
+                "error": "dd"
             }
             }), content_type="application/json")
