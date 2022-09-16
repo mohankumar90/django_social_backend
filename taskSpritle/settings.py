@@ -25,7 +25,7 @@ SECRET_KEY = 'django-insecure-@so&$_!-jf17z2$rla3jxhz-a4rblbqdh_ki5hgrdba$i%e-by
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ["13.229.203.229","ip-172-31-44-212.ap-southeast-1.compute.internal", "localhost"]
+ALLOWED_HOSTS = ["*"] #["13.229.203.229","ip-172-31-44-212.ap-southeast-1.compute.internal", "localhost"]
 
 
 # Application definition
@@ -37,18 +37,22 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'posts'
+    'corsheaders',
+    'posts',
 ]
 
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',
+    'django.middleware.common.CommonMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
-    'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
+
+CORS_ALLOW_ALL_ORIGINS = True
 
 ROOT_URLCONF = 'taskSpritle.urls'
 

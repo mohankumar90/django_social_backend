@@ -61,19 +61,10 @@ def signup(request):
 
 @csrf_exempt    
 def loginRequest(request):
-    if request.user.is_authenticated:
-        return HttpResponse(json.dumps({
-            "status": True,
-            "data": {
-                    "userid": request.user.id,
-                    "firstname": request.user.first_name,
-                    "email": request.user.email
-                }
-            }), content_type="application/json")
-        # return HttpResponse(json.dumps(), content_type="application/json")
     if request.method == 'POST':
         username = request.POST.get('un')
         password = request.POST.get('pw')
+        print(username, password)
         user = authenticate(request, username=username, password=password)
         if user is not None:
             login(request, user)
