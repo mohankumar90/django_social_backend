@@ -8,6 +8,11 @@ from django.contrib.auth.models import User
 from django.core import mail
 
 from posts.models import *
+from posts.seriealizer import *
+
+from rest_framework import viewsets
+from rest_framework import status
+from rest_framework import permissions
 
 import json
 import datetime
@@ -16,6 +21,33 @@ import datetime
 # from rest_framework.decorators import api_view, renderer_classes
 # from rest_framework.response import Response
 # Create your views here.
+
+class PersonViewSet(viewsets.ModelViewSet):
+    queryset = Person.objects.all()
+    serializer_class =  personSerializer
+
+class PostViewSet(viewsets.ModelViewSet):
+    queryset = Post.objects.all()
+    serializer_class =  postsSerializer
+
+    def retrieve(self, request, pk=None):
+        post = Post.objects.get(pk=pk)
+        post = postsSerializer(post).data
+        person = Person.objects.get(id=post["owner"])
+        post["owner"] = {
+                            "person_id": person.id,
+                            "person_name": person.user.username,
+                            "person_pic": person.pic,
+                        }
+        return HttpResponse(json.dumps(post), content_type="application/json")
+
+class CommentViewSet(viewsets.ModelViewSet):
+    queryset = Comment.objects.all()
+    serializer_class =  commentSerializer
+
+class LikesViewSet(viewsets.ModelViewSet):
+    queryset = Likes.objects.all()
+    serializer_class =  likesSerializer
 
 @csrf_exempt
 def signup(request):
@@ -28,7 +60,6 @@ def signup(request):
                     "email": request.user.email
                 }
             }), content_type="application/json")
-        # return HttpResponse(json.dumps(), content_type="application/json")
     if request.method == 'POST':
         username = request.POST.get('username')
         password = request.POST.get('password')
@@ -64,7 +95,6 @@ def loginRequest(request):
     if request.method == 'POST':
         username = request.POST.get('un')
         password = request.POST.get('pw')
-        print(username, password)
         user = authenticate(request, username=username, password=password)
         if user is not None:
             login(request, user)
@@ -98,7 +128,7 @@ def logoutRequest(request):
 
 
 @csrf_exempt
-def createPost(request):#, userid, title, post, created):
+def createPost(request):
     if request.method == "POST":
         title = request.POST.get('title')
         desc = request.POST.get('desc')
@@ -218,3 +248,48 @@ def sendNotifications(request):
                 "error": "dd"
             }
             }), content_type="application/json")
+
+@csrf_exempt
+def listOfPosts(request):
+    if request.method == "POST":
+        personId = request.POST.get('personId')
+
+        if not (personId):
+            return HttpResponse(json.dumps({
+            "status": False,
+            "data": {
+                "error": "params missing"
+            }
+            }), content_type="application/json")
+        else:
+            objs = Post.objects.filter(owner=personId)
+            person = Person.objects.get(id=personId)
+            returnable = []
+            for i in objs:
+                returnable.append(postsSerializer(i).data)
+            return HttpResponse(json.dumps({
+                "status": True,
+                "data": {
+                    "person_name": person.user.username,
+                    "person_pic": person.pic,
+                    "postData": returnable
+                }
+            }), content_type="application/json")
+    return HttpResponse(json.dumps({
+            "status": False,
+            "data": {
+                "error": "no get method allowed"
+            }
+            }), content_type="application/json")
+
+@csrf_exempt
+def getCommentsForPost(request, postId):
+    if postId:
+        comments = Comment.objects.filter(post=postId).values("id", "cmd", "owner")
+        returnable = []
+        for cmd in comments:
+            person = Person.objects.get(id=cmd["owner"])
+            person = {"id": person.id, "person_name": person.user.username, "person_pic": person.pic}
+            returnable.append({"id": cmd["id"], "cmd": cmd["cmd"], "owner": person})
+        # comments = list(comments)
+        return HttpResponse(json.dumps(returnable), content_type="application/json")

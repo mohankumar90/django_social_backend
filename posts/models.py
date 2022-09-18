@@ -6,7 +6,7 @@ from django.contrib.auth.models import User
 class Person(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, db_column="user")
     country = models.CharField(max_length=50, db_column="country")
-    pic = models.CharField(max_length=250, db_column="pic")
+    pic = models.CharField(max_length=1000, db_column="pic")
 
 class Post(models.Model):
     title = models.CharField(max_length=150, db_column="title")
