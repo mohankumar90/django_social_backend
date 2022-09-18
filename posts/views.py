@@ -51,15 +51,6 @@ class LikesViewSet(viewsets.ModelViewSet):
 
 @csrf_exempt
 def signup(request):
-    if request.user.is_authenticated:
-        return HttpResponse(json.dumps({
-            "status": False,
-            "data": {
-                    "userid": request.user.id,
-                    "firstname": request.user.first_name,
-                    "email": request.user.email
-                }
-            }), content_type="application/json")
     if request.method == 'POST':
         username = request.POST.get('username')
         password = request.POST.get('password')
@@ -98,14 +89,25 @@ def loginRequest(request):
         user = authenticate(request, username=username, password=password)
         if user is not None:
             login(request, user)
-            return HttpResponse(json.dumps({
-                "status": True, 
+            person = Person.objects.get(user=user)
+            if person:
+                return HttpResponse(json.dumps({
+                    "status": True, 
+                    "data": {
+                        "userid": user.id,
+                        "personId": person.id,
+                        "first_name": user.first_name,
+                        "email": user.email,
+                        "pic": person.pic
+                    }
+                    }), content_type="application/json")
+            else:
+                return HttpResponse(json.dumps({
+                "status": False,
                 "data": {
-                    "userid": user.id,
-                    "firstname": user.first_name,
-                    "email": user.email
+                    "error": "No corresponding person found"
                 }
-                }), content_type="application/json")
+            }), content_type="application/json")
         else:
             return HttpResponse(json.dumps({
                 "status": False,
