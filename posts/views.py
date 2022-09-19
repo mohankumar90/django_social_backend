@@ -228,7 +228,12 @@ def comment(request):
             obj = Comment(cmd=cmd, owner=owner, post=post)
             obj.save()
             return HttpResponse(json.dumps({
-                "status": True
+                "status": True,
+                "data": {
+                    "id": obj.id,
+                    "pic": owner.pic,
+                    "first_name": owner.user.first_name
+                }
                 }), content_type="application/json")
     else:
         return HttpResponse(json.dumps({
@@ -270,20 +275,32 @@ def sendNotifications(request):
 def listOfPosts(request):
     if request.method == "POST":
         personId = request.POST.get('personId')
-
-        if not (personId):
+        pageType = request.POST.get('pageType')
+        
+        if not (personId or pageType):
             return HttpResponse(json.dumps({
             "status": False,
             "data": {
-                "error": "params missing"
+                "error": "some params are missing"
             }
             }), content_type="application/json")
         else:
-            objs = Post.objects.filter(owner=personId)
+            objs = []
+            if pageType == "wall":
+                objs = Post.objects.all().order_by('-id')[:10]
+            else:
+                objs = Post.objects.filter(owner=personId)
             person = Person.objects.get(id=personId)
             returnable = []
             for i in objs:
-                returnable.append(postsSerializer(i).data)
+                owner = Person.objects.get(id=i.owner.id)
+                returnable.append({
+                    "post": postsSerializer(i).data,
+                    "postOwner": {
+                                "person_name": owner.user.username,
+                                "person_pic": owner.pic    
+                                }
+                    })
             return HttpResponse(json.dumps({
                 "status": True,
                 "data": {
