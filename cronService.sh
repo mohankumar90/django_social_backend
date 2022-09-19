@@ -1,1 +1,1 @@
-curl --location --request GET 'http://localhost/posts/sendNotifications'
+curl --location --request GET 'http://localhost:8000/posts/sendNotifications'

@@ -67,11 +67,24 @@ def signup(request):
                 }
             }), content_type="application/json")
 
-        u, created = User.objects.get_or_create(username=username, password=password, email=email, first_name=first_name)
+        try:
+            u, created = User.objects.get_or_create(username=username, email=email, first_name=first_name)
+            u.set_password(password)
+            u.save()
+
+            if created:
+                obj = Person(user=u, country=country, pic=pic)
+                obj.save()
+
+        except Exception as exception:
+            print(str(exception))
+            return HttpResponse(json.dumps({
+                                    "status": False,
+                                    "data": {
+                                        "error": str(exception)
+                                    }
+                                }), content_type="application/json")
         
-        if created:
-            obj = Person(user=u, country=country, pic=pic)
-            obj.save()
         return HttpResponse(json.dumps({
             "status": created,
             "data": u.id
@@ -86,7 +99,9 @@ def loginRequest(request):
     if request.method == 'POST':
         username = request.POST.get('un')
         password = request.POST.get('pw')
+        print(username, password)
         user = authenticate(request, username=username, password=password)
+        print(user)
         if user is not None:
             login(request, user)
             person = Person.objects.get(user=user)
@@ -242,7 +257,7 @@ def sendNotifications(request):
                 connection=connection,
             ).send()
 
-        break
+        # break
 
     return HttpResponse(json.dumps({
             "status": True,
